@@ -15,9 +15,13 @@ namespace System.Reflection
     public sealed class ZipAssembly : Assembly
     {
         // always set to Zip file full path + \\ + file path in zip.
-        internal string _location;
+#pragma warning disable SA1401 // Fields should be private
+        internal string LocationValue;
+#pragma warning restore SA1401 // Fields should be private
 
-        internal Assembly _assembly;
+#pragma warning disable SA1401 // Fields should be private
+        internal Assembly AssemblyName;
+#pragma warning restore SA1401 // Fields should be private
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ZipAssembly"/> class.
@@ -30,7 +34,7 @@ namespace System.Reflection
         /// <summary>
         /// Gets the Assembly associated with this ZipAssembly instance.
         /// </summary>
-        public Assembly assembly => _assembly;
+        public Assembly Name => AssemblyName;
 
         // hopefully this has the path to the assembly on System.Reflection.Assembly.Location output with the value from this override.
 
@@ -41,7 +45,7 @@ namespace System.Reflection
         {
             get
             {
-                return this._location;
+                return this.LocationValue;
             }
         }
 
@@ -115,8 +119,8 @@ namespace System.Reflection
             // and really *should* always be present.
             bool loadPDB = loadPDBFile ? loadPDBFile : Debugger.IsAttached;
             ZipAssembly zipassembly = new ZipAssembly();
-            zipassembly._location = zipFileName + Path.DirectorySeparatorChar + assemblyName;
-            zipassembly._assembly = loadPDB ? Assembly.Load(asmbytes, pdbbytes) : Assembly.Load(asmbytes);
+            zipassembly.LocationValue = zipFileName + Path.DirectorySeparatorChar + assemblyName;
+            zipassembly.AssemblyName = loadPDB ? Assembly.Load(asmbytes, pdbbytes) : Assembly.Load(asmbytes);
             return zipassembly;
         }
     }

@@ -1,9 +1,8 @@
 // Copyright (c) 2018, Els_kom org.
 // https://github.com/Elskom/
 // All rights reserved.
-// license: MIT, see LICENSE for more details.
+// license: see LICENSE for more details.
 
-// extend System.Reflection with a Zip file assembly loader.
 namespace System.Reflection
 {
     using System.Diagnostics;
@@ -16,21 +15,11 @@ namespace System.Reflection
     public sealed class ZipAssembly : Assembly
     {
         // always set to Zip file full path + \\ + file path in zip.
-        internal string _location;
-        internal Assembly _assembly;
+        private string location;
+        private Assembly assembly;
 
         /// <summary>
-        /// Gets the Assembly associated with this ZipAssembly instance.
-        /// </summary>
-        public Assembly assembly => _assembly;
-
-        // hopefully this has the path to the assembly on System.Reflection.Assembly.Location output with the value from this override.
-        /// <summary>
-        /// Gets the location of the assembly in the zip file.
-        /// </summary>
-        public override string Location => _location;
-
-        /// <summary>
+        /// Initializes a new instance of the <see cref="ZipAssembly"/> class.
         /// Load assemblies from a zip file.
         /// </summary>
         public ZipAssembly()
@@ -38,15 +27,34 @@ namespace System.Reflection
         }
 
         /// <summary>
+        /// Gets the Assembly associated with this ZipAssembly instance.
+        /// </summary>
+        public Assembly Assembly => assembly;
+
+        // hopefully this has the path to the assembly on System.Reflection.Assembly.Location output with the value from this override.
+
+        /// <summary>
+        /// Gets the location of the assembly in the zip file.
+        /// </summary>
+        public override string Location => location;
+
+        /// <summary>
         /// Loads the assembly from the specified zip file.
         /// </summary>
-        public static ZipAssembly LoadFromZip(string ZipFileName, string AssemblyName) => LoadFromZip(ZipFileName, AssemblyName, false);
+        /// <param name="zipFileName">name of the zip file.</param>
+        /// <param name="assemblyName">name of the assembly.</param>
+        /// <returns>ZipAssembly.</returns>
+        public static ZipAssembly LoadFromZip(string zipFileName, string assemblyName) => LoadFromZip(zipFileName, assemblyName, false);
 
         /// <summary>
         /// Loads the assembly with it’s debugging symbols
         /// from the specified zip file.
         /// </summary>
-        public static ZipAssembly LoadFromZip(string ZipFileName, string AssemblyName, bool LoadPDBFile)
+        /// <param name="zipFileName">name of the zip file.</param>
+        /// <param name="assemblyName">name of the assembly.</param>
+        /// <param name="loadPDBFile">indicates if it should also load PDB files.</param>
+        /// <returns>ZipAssembly.</returns>
+        public static ZipAssembly LoadFromZip(string zipFileName, string assemblyName, bool loadPDBFile)
         {
             // check if the assembly is in the zip file.
             // If it is, get it’s bytes then load it.
@@ -56,11 +64,11 @@ namespace System.Reflection
             bool pdbfound = false;
             byte[] asmbytes = null;
             byte[] pdbbytes = null;
-            string pdbFileName = AssemblyName.Replace("dll", "pdb");
-            ZipArchive zipFile = ZipFile.OpenRead(ZipFileName);
+            string pdbFileName = assemblyName.Replace("dll", "pdb");
+            ZipArchive zipFile = ZipFile.OpenRead(zipFileName);
             foreach (var entry in zipFile.Entries)
             {
-                if (entry.FullName.Equals(AssemblyName))
+                if (entry.FullName.Equals(assemblyName))
                 {
                     found = true;
                     Stream strm = entry.Open();
@@ -81,25 +89,28 @@ namespace System.Reflection
                     strm.Dispose();
                 }
             }
+
             zipFile.Dispose();
             if (!found)
             {
                 throw new ZipAssemblyLoadException(
                     "Assembly specified to load in ZipFile not found.");
             }
+
             if (!pdbfound)
             {
                 throw new ZipSymbolsLoadException(
                     "pdb to Assembly specified to load in ZipFile not found.");
             }
+
             // always load pdb when debugging.
             // PDB should be automatically downloaded to zip file always
             // and really *should* always be present.
-            bool LoadPDB = LoadPDBFile ? LoadPDBFile : Debugger.IsAttached;
-            ZipAssembly Zipassembly = new ZipAssembly();
-            Zipassembly._location =  ZipFileName + Path.DirectorySeparatorChar + AssemblyName;
-            Zipassembly._assembly = LoadPDB ? Assembly.Load(asmbytes, pdbbytes) : Assembly.Load(asmbytes);
-            return Zipassembly;
+            bool loadPDB = loadPDBFile ? loadPDBFile : Debugger.IsAttached;
+            ZipAssembly zipassembly = new ZipAssembly();
+            zipassembly.location = zipFileName + Path.DirectorySeparatorChar + assemblyName;
+            zipassembly.assembly = loadPDB ? Assembly.Load(asmbytes, pdbbytes) : Assembly.Load(asmbytes);
+            return zipassembly;
         }
     }
 }

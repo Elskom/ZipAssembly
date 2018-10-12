@@ -76,7 +76,7 @@ namespace System.Reflection
             byte[] asmbytes = null;
             byte[] pdbbytes = null;
             string pdbFileName = assemblyName.Replace("dll", "pdb");
-            ZipArchive zipFile = ZipFile.OpenRead(zipFileName);
+            var zipFile = ZipFile.OpenRead(zipFileName);
             foreach (var entry in zipFile.Entries)
             {
                 if (entry.FullName.Equals(assemblyName))

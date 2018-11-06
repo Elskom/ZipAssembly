@@ -8,6 +8,7 @@ namespace System.Reflection
     using System.Diagnostics;
     using System.IO;
     using System.IO.Compression;
+    using System.Linq;
 
     /// <summary>
     /// Load assemblies from a zip file.
@@ -38,14 +39,6 @@ namespace System.Reflection
         public override string Location => locationValue;
 
         /// <summary>
-        /// Loads the assembly from the specified zip file.
-        /// </summary>
-        /// <param name="zipFileName">zipFileName</param>
-        /// <param name="assemblyName">assemplyName</param>
-        /// <returns>ZipAssembly</returns>
-        public static ZipAssembly LoadFromZip(string zipFileName, string assemblyName) => LoadFromZip(zipFileName, assemblyName, false);
-
-        /// <summary>
         /// Loads the assembly with it’s debugging symbols
         /// from the specified zip file.
         /// </summary>
@@ -53,50 +46,60 @@ namespace System.Reflection
         /// <param name="assemblyName">assemplyName</param>
         /// <param name="loadPDBFile">loadPDBFile</param>
         /// <returns>ZipAssembly</returns>
-        public static ZipAssembly LoadFromZip(string zipFileName, string assemblyName, bool loadPDBFile)
+        public static ZipAssembly LoadFromZip(string zipFileName, string assemblyName, bool loadPDBFile = false)
         {
+            if (string.IsNullOrWhiteSpace(zipFileName))
+            {
+                throw new ArgumentException($"{nameof(zipFileName)} is not allowed to be empty.", nameof(zipFileName));
+            }
+            else if (!File.Exists(zipFileName))
+            {
+                throw new ArgumentException($"{nameof(zipFileName)} does not exist.", nameof(zipFileName));
+            }
+
+            if (string.IsNullOrWhiteSpace(assemblyName))
+            {
+                throw new ArgumentException($"{nameof(assemblyName)} is not allowed to be empty.", nameof(assemblyName));
+            }
+            else if (!assemblyName.EndsWith(".dll"))
+            {
+                // setting pdbFileName fails or makes unpredicted/unwanted things if this is not checked
+                throw new ArgumentException($"{nameof(assemblyName)} must end with '.dll' to be a valid assembly name.", nameof(assemblyName));
+            }
+
             // check if the assembly is in the zip file.
             // If it is, get it’s bytes then load it.
             // If not throw an exception. Also throw
-            // an exception if the pdb file is not found.
+            // an exception if the pdb file is requested but not found.
             bool found = false;
             bool pdbfound = false;
             byte[] asmbytes = null;
             byte[] pdbbytes = null;
             string pdbFileName = assemblyName.Replace("dll", "pdb");
-            ZipArchive zipFile = ZipFile.OpenRead(zipFileName);
-            foreach (ZipArchiveEntry entry in zipFile.Entries)
+            using (ZipArchive zipFile = ZipFile.OpenRead(zipFileName))
             {
-                if (entry.FullName.Equals(assemblyName))
+                (byte[] bytes, bool found) asm = GetBytesFromZipFile(assemblyName, zipFile);
+                asmbytes = asm.bytes;
+                found = asm.found;
+
+                if (loadPDBFile)
                 {
-                    found = true;
-                    Stream strm = entry.Open();
-                    MemoryStream ms = new MemoryStream();
-                    strm.CopyTo(ms);
-                    asmbytes = ms.ToArray();
-                    ms.Dispose();
-                    strm.Dispose();
+                    (byte[] bytes, bool found) pdb = GetBytesFromZipFile(pdbFileName, zipFile);
+                    pdbbytes = pdb.bytes;
+                    pdbfound = pdb.found;
                 }
-                else if (entry.FullName.Equals(pdbFileName))
-                {
-                    pdbfound = true;
-                    Stream strm = entry.Open();
-                    MemoryStream ms = new MemoryStream();
-                    strm.CopyTo(ms);
-                    pdbbytes = ms.ToArray();
-                    ms.Dispose();
-                    strm.Dispose();
-                }
+
+                zipFile.Dispose(); // With using pattern redundent but good to indicate a dispose
             }
 
-            zipFile.Dispose();
             if (!found)
             {
                 throw new ZipAssemblyLoadException(
                     "Assembly specified to load in ZipFile not found.");
             }
 
-            if (!pdbfound)
+            // should only be evaluated if pdb-file is asked for
+            if (loadPDBFile && !pdbfound)
             {
                 throw new ZipSymbolsLoadException(
                     "pdb to Assembly specified to load in ZipFile not found.");
@@ -112,6 +115,31 @@ namespace System.Reflection
                 Assembly = loadPDB ? Assembly.Load(asmbytes, pdbbytes) : Assembly.Load(asmbytes),
             };
             return zipassembly;
+        }
+
+        private static (byte[] bytes, bool found) GetBytesFromZipFile(string entryName, ZipArchive zipFile)
+        {
+            byte[] bytes = null;
+            bool found = false;
+            ZipArchiveEntry assemblyEntry = zipFile.Entries.Where(e => e.FullName.Equals(entryName)).FirstOrDefault();
+
+            if (assemblyEntry != null)
+            {
+                found = true;
+                using (Stream strm = assemblyEntry.Open())
+                {
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        strm.CopyTo(ms);
+                        bytes = ms.ToArray();
+                        ms.Dispose();
+                    }
+
+                    strm.Dispose();
+                }
+            }
+
+            return (bytes, found);
         }
     }
 }

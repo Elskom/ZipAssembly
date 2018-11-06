@@ -75,15 +75,15 @@ namespace System.Reflection
             bool pdbfound = false;
             byte[] asmbytes = null;
             byte[] pdbbytes = null;
-            string pdbFileName = assemblyName.Replace("dll", "pdb");
             using (ZipArchive zipFile = ZipFile.OpenRead(zipFileName))
             {
                 (byte[] bytes, bool found) asm = GetBytesFromZipFile(assemblyName, zipFile);
                 asmbytes = asm.bytes;
                 found = asm.found;
 
-                if (loadPDBFile)
+                if (loadPDBFile || Debugger.IsAttached)
                 {
+                    string pdbFileName = assemblyName.Replace("dll", "pdb");
                     (byte[] bytes, bool found) pdb = GetBytesFromZipFile(pdbFileName, zipFile);
                     pdbbytes = pdb.bytes;
                     pdbfound = pdb.found;

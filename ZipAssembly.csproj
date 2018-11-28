@@ -2,11 +2,11 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netcoreapp2.1;netstandard2.0;net452;net462;net47;net472</TargetFrameworks>
-		<AssemblyName>System.Reflection.ZipAssembly</AssemblyName>
+		<AssemblyName>ZipAssembly</AssemblyName>
 		<LangVersion>latest</LangVersion>
 		<Company>Els_kom org.</Company>
 		<Authors>Els_kom org.</Authors>
-		<PackageTags>System.Reflection.ZipAssembly</PackageTags>
+		<PackageTags>ZipAssembly</PackageTags>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/Elskom/ZipAssembly/</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/Elskom/ZipAssembly/</PackageProjectUrl>
@@ -23,7 +23,7 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 		<OutputPath>bin\Any CPU\Debug\</OutputPath>
-		<DocumentationFile>bin\Any CPU\Debug\System.Reflection.ZipAssembly.xml</DocumentationFile>
+		<DocumentationFile>bin\Any CPU\Debug\ZipAssembly.xml</DocumentationFile>
 		<DebugType>full</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
@@ -32,7 +32,7 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 		<OutputPath>bin\Any CPU\Release\</OutputPath>
-		<DocumentationFile>bin\Any CPU\Release\System.Reflection.ZipAssembly.xml</DocumentationFile>
+		<DocumentationFile>bin\Any CPU\Release\ZipAssembly.xml</DocumentationFile>
 		<DebugType>full</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>

@@ -13,8 +13,8 @@
 		<PackageLicenseUrl>https://github.com/Elskom/ZipAssembly/blob/master/LICENSE</PackageLicenseUrl>
 		<Copyright>Copyright (c) 2018</Copyright>
 		<Description>A .NET library for loading assemblies from zip files.</Description>
-		<PackageReleaseNotes>Target .NET Standard and multiple .NET Framework versions.</PackageReleaseNotes>
-		<Version>1.0.0</Version>
+		<PackageReleaseNotes>Renamed namespace of package.</PackageReleaseNotes>
+		<Version>1.1.0</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>
 

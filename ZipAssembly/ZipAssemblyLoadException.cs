@@ -3,7 +3,7 @@
 // All rights reserved.
 // license: see LICENSE for more details.
 
-namespace System.Reflection
+namespace Elskom.Generic.Libs
 {
     using System;
 

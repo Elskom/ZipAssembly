@@ -9,6 +9,7 @@ namespace Elskom.Generic.Libs
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
+    using System.Reflection;
 
     /// <summary>
     /// Load assemblies from a zip file.

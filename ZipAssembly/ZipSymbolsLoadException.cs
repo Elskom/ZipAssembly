@@ -33,5 +33,17 @@ namespace Elskom.Generic.Libs
             : base(str)
         {
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ZipSymbolsLoadException"/> class.
+        /// A exception that is raised when the symbols to an
+        /// assembly cannot be loaded from a zip file.
+        /// </summary>
+        /// <param name="message">String.</param>
+        /// <param name="innerException">Inner exception.</param>
+        public ZipSymbolsLoadException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 }

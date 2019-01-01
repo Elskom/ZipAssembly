@@ -11,7 +11,7 @@
 		<RepositoryUrl>https://github.com/Elskom/ZipAssembly/</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/Elskom/ZipAssembly/</PackageProjectUrl>
 		<PackageLicenseUrl>https://github.com/Elskom/ZipAssembly/blob/master/LICENSE</PackageLicenseUrl>
-		<Copyright>Copyright (c) 2018</Copyright>
+		<Copyright>Copyright (c) 2018-2019</Copyright>
 		<Description>A .NET library for loading assemblies from zip files.</Description>
 		<PackageReleaseNotes>Added .NET Core 3.0 and 2.2 to target frameworks.</PackageReleaseNotes>
 		<Version>1.1.1</Version>

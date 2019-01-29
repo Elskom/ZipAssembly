@@ -28,11 +28,6 @@ namespace Elskom.Generic.Libs
         {
         }
 
-        /// <summary>
-        /// Gets the Assembly associated with this ZipAssembly instance.
-        /// </summary>
-        public Assembly Assembly { get; private set; }
-
         // hopefully this has the path to the assembly on System.Reflection.Assembly.Location output with the value from this override.
 
         /// <summary>
@@ -44,10 +39,11 @@ namespace Elskom.Generic.Libs
         /// Loads the assembly with it’s debugging symbols
         /// from the specified zip file.
         /// </summary>
-        /// <param name="zipFileName">zipFileName</param>
-        /// <param name="assemblyName">assemplyName</param>
-        /// <param name="loadPDBFile">loadPDBFile</param>
-        /// <returns>ZipAssembly</returns>
+        /// <param name="zipFileName">The zip file for which to look for the assembly in.</param>
+        /// <param name="assemblyName">The assembly file name to load.</param>
+        /// <param name="loadPDBFile">Loads the assemblies debugging symbols (pdb file) if true.</param>
+        /// <returns>A new <see cref="ZipAssembly"/> that represents the loaded assembly.</returns>
+        // TODO: Document the possible exceptions thrown directly from this method.
         public static ZipAssembly LoadFromZip(string zipFileName, string assemblyName, bool loadPDBFile = false)
         {
             if (string.IsNullOrWhiteSpace(zipFileName))
@@ -111,11 +107,8 @@ namespace Elskom.Generic.Libs
             // PDB should be automatically downloaded to zip file always
             // and really *should* always be present.
             bool loadPDB = loadPDBFile ? loadPDBFile : Debugger.IsAttached;
-            ZipAssembly zipassembly = new ZipAssembly
-            {
-                locationValue = zipFileName + Path.DirectorySeparatorChar + assemblyName,
-                Assembly = loadPDB ? Assembly.Load(asmbytes, pdbbytes) : Assembly.Load(asmbytes),
-            };
+            ZipAssembly zipassembly = loadPDB ? (ZipAssembly)Load(asmbytes, pdbbytes) : (ZipAssembly)Load(asmbytes);
+            zipassembly.locationValue = zipFileName + Path.DirectorySeparatorChar + assemblyName;
             return zipassembly;
         }
 

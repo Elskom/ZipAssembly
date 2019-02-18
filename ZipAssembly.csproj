@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0;netstandard2.0;net45;net451;net452;net46;net461;net462;net47;net471;net472</TargetFrameworks>
+		<TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0;netstandard2.0;net45;net451;net452;net46;net461;net462;net47;net471;net472;net48</TargetFrameworks>
 		<AssemblyName>ZipAssembly</AssemblyName>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<LangVersion>latest</LangVersion>
@@ -11,13 +11,14 @@
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/Elskom/ZipAssembly/</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/Elskom/ZipAssembly/</PackageProjectUrl>
-		<PackageLicenseUrl>https://github.com/Elskom/ZipAssembly/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright (c) 2018-2019</Copyright>
 		<Description>A .NET library for loading assemblies from zip files.</Description>
 		<PackageReleaseNotes>Removed ZipAssembly.Assembly property. The property was redundant as ZipAssembly is a subclass of Assembly anyway. Also added reference assemblies.</PackageReleaseNotes>
 		<Version>1.1.2</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+		<NoWarn>$(NoWarn);NU5104;NU5118</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -32,6 +33,25 @@
 		<!-- Add debugging symbols. -->
 		<TfmSpecificPackageFile Include="$(OutputPath)/$(ProjectName).pdb">
 			<PackagePath>lib/$(TargetFramework)</PackagePath>
+		</TfmSpecificPackageFile>
+		<!-- Add source code. -->
+		<TfmSpecificPackageFile Include="$(ProjectPath)">
+			<PackagePath>src/$(ProjectName)/$(ProjectFileName)</PackagePath>
+		</TfmSpecificPackageFile>
+		<TfmSpecificPackageFile Include="$(ProjectDir)/$(ProjectName)/">
+			<PackagePath>src/$(ProjectName)/$(ProjectName)/</PackagePath>
+		</TfmSpecificPackageFile>
+		<TfmSpecificPackageFile Include="$(ProjectDir)/README.md">
+			<PackagePath>src/$(ProjectName)/README.md</PackagePath>
+		</TfmSpecificPackageFile>
+		<TfmSpecificPackageFile Include="$(ProjectDir)/stylecop.json">
+			<PackagePath>src/$(ProjectName)/stylecop.json</PackagePath>
+		</TfmSpecificPackageFile>
+		<TfmSpecificPackageFile Include="$(ProjectDir)/global.json">
+			<PackagePath>src/$(ProjectName)/global.json</PackagePath>
+		</TfmSpecificPackageFile>
+		<TfmSpecificPackageFile Include="$(ProjectDir)/$(ProjectName).ruleset">
+			<PackagePath>src/$(ProjectName)/$(ProjectName).ruleset</PackagePath>
 		</TfmSpecificPackageFile>
 	</ItemGroup>
 

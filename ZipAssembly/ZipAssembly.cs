@@ -7,6 +7,7 @@ namespace Elskom.Generic.Libs
 {
     using System;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
@@ -33,7 +34,7 @@ namespace Elskom.Generic.Libs
         /// <summary>
         /// Gets the location of the assembly in the zip file.
         /// </summary>
-        public override string Location => locationValue;
+        public override string Location => this.locationValue;
 
         /// <summary>
         /// Loads the assembly with it’s debugging symbols
@@ -69,22 +70,23 @@ namespace Elskom.Generic.Libs
             // If it is, get it’s bytes then load it.
             // If not throw an exception. Also throw
             // an exception if the pdb file is requested but not found.
-            bool found = false;
-            bool pdbfound = false;
+            var found = false;
+            var pdbfound = false;
             byte[] asmbytes = null;
             byte[] pdbbytes = null;
-            using (ZipArchive zipFile = ZipFile.OpenRead(zipFileName))
+            using (var zipFile = ZipFile.OpenRead(zipFileName))
             {
-                (byte[] bytes, bool found) asm = GetBytesFromZipFile(assemblyName, zipFile);
-                asmbytes = asm.bytes;
-                found = asm.found;
+                /*(byte[] bytes, bool found) asm = */GetBytesFromZipFile(assemblyName, zipFile, out asmbytes, out found);
 
+                // asmbytes = asm.bytes;
+                // found = asm.found;
                 if (loadPDBFile || Debugger.IsAttached)
                 {
-                    string pdbFileName = assemblyName.Replace("dll", "pdb");
-                    (byte[] bytes, bool found) pdb = GetBytesFromZipFile(pdbFileName, zipFile);
-                    pdbbytes = pdb.bytes;
-                    pdbfound = pdb.found;
+                    var pdbFileName = assemblyName.Replace("dll", "pdb");
+                    /*(byte[] bytes, bool found) pdb = */GetBytesFromZipFile(pdbFileName, zipFile, out pdbbytes, out pdbfound);
+
+                    // pdbbytes = pdb.bytes;
+                    // pdbfound = pdb.found;
                 }
 
                 zipFile.Dispose(); // With using pattern redundent but good to indicate a dispose
@@ -106,24 +108,25 @@ namespace Elskom.Generic.Libs
             // always load pdb when debugging.
             // PDB should be automatically downloaded to zip file always
             // and really *should* always be present.
-            bool loadPDB = loadPDBFile ? loadPDBFile : Debugger.IsAttached;
-            ZipAssembly zipassembly = loadPDB ? (ZipAssembly)Load(asmbytes, pdbbytes) : (ZipAssembly)Load(asmbytes);
+            var loadPDB = loadPDBFile ? loadPDBFile : Debugger.IsAttached;
+            var zipassembly = loadPDB ? (ZipAssembly)Load(asmbytes, pdbbytes) : (ZipAssembly)Load(asmbytes);
             zipassembly.locationValue = zipFileName + Path.DirectorySeparatorChar + assemblyName;
             return zipassembly;
         }
 
-        private static (byte[] bytes, bool found) GetBytesFromZipFile(string entryName, ZipArchive zipFile)
+        [SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "A new disposable wrapped in a using block. The code never checks for null at all.", Scope = "member")]
+        private static /*(byte[] bytes, bool found)*/ void GetBytesFromZipFile(string entryName, ZipArchive zipFile, out byte[] bytes, out bool found)
         {
-            byte[] bytes = null;
-            bool found = false;
-            ZipArchiveEntry assemblyEntry = zipFile.Entries.Where(e => e.FullName.Equals(entryName)).FirstOrDefault();
+            var assemblyEntry = zipFile.Entries.Where(e => e.FullName.Equals(entryName)).FirstOrDefault();
 
+            found = false;
+            bytes = null;
             if (assemblyEntry != null)
             {
                 found = true;
-                using (Stream strm = assemblyEntry.Open())
+                using (var strm = assemblyEntry.Open())
                 {
-                    using (MemoryStream ms = new MemoryStream())
+                    using (var ms = new MemoryStream())
                     {
                         strm.CopyTo(ms);
                         bytes = ms.ToArray();
@@ -134,7 +137,7 @@ namespace Elskom.Generic.Libs
                 }
             }
 
-            return (bytes, found);
+            // return (bytes, found);
         }
     }
 }

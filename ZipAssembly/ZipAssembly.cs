@@ -16,6 +16,7 @@ namespace Elskom.Generic.Libs
     /// <summary>
     /// Load assemblies from a zip file.
     /// </summary>
+    [Serializable]
     public sealed class ZipAssembly : Assembly
     {
         // always set to Zip file full path + \\ + file path in zip.

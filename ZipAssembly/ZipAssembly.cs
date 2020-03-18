@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, Els_kom org.
+// Copyright (c) 2018-2020, Els_kom org.
 // https://github.com/Elskom/
 // All rights reserved.
 // license: see LICENSE for more details.
@@ -16,7 +16,6 @@ namespace Elskom.Generic.Libs
     /// <summary>
     /// Load assemblies from a zip file.
     /// </summary>
-    [Serializable]
     public sealed class ZipAssembly : Assembly
     {
         // always set to Zip file full path + \\ + file path in zip.
@@ -73,24 +72,17 @@ namespace Elskom.Generic.Libs
             // an exception if the pdb file is requested but not found.
             var found = false;
             var pdbfound = false;
+            var zipAssemblyName = string.Empty;
             byte[] asmbytes = null;
             byte[] pdbbytes = null;
             using (var zipFile = ZipFile.OpenRead(zipFileName))
             {
-                /*(byte[] bytes, bool found) asm = */GetBytesFromZipFile(assemblyName, zipFile, out asmbytes, out found);
-
-                // asmbytes = asm.bytes;
-                // found = asm.found;
+                GetBytesFromZipFile(assemblyName, zipFile, out asmbytes, out found, out zipAssemblyName);
                 if (loadPDBFile || Debugger.IsAttached)
                 {
                     var pdbFileName = assemblyName.Replace("dll", "pdb");
-                    /*(byte[] bytes, bool found) pdb = */GetBytesFromZipFile(pdbFileName, zipFile, out pdbbytes, out pdbfound);
-
-                    // pdbbytes = pdb.bytes;
-                    // pdbfound = pdb.found;
+                    GetBytesFromZipFile(pdbFileName, zipFile, out pdbbytes, out pdbfound, out var pdbAssemblyName);
                 }
-
-                zipFile.Dispose(); // With using pattern redundent but good to indicate a dispose
             }
 
             if (!found)
@@ -110,20 +102,21 @@ namespace Elskom.Generic.Libs
             // PDB should be automatically downloaded to zip file always
             // and really *should* always be present.
             var loadPDB = loadPDBFile ? loadPDBFile : Debugger.IsAttached;
-            var zipassembly = loadPDB ? (ZipAssembly)Load(asmbytes, pdbbytes) : (ZipAssembly)Load(asmbytes);
-            zipassembly.locationValue = zipFileName + Path.DirectorySeparatorChar + assemblyName;
+            var zipassembly = (ZipAssembly)(Assembly)Load(asmbytes, loadPDB ? pdbbytes : null);
+            zipassembly.locationValue = $"{zipFileName}{Path.DirectorySeparatorChar}{zipAssemblyName}";
             return zipassembly;
         }
 
         [SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "A new disposable wrapped in a using block. The code never checks for null at all.", Scope = "member")]
-        private static /*(byte[] bytes, bool found)*/ void GetBytesFromZipFile(string entryName, ZipArchive zipFile, out byte[] bytes, out bool found)
+        private static void GetBytesFromZipFile(string entryName, ZipArchive zipFile, out byte[] bytes, out bool found, out string assemblyName)
         {
-            var assemblyEntry = zipFile.Entries.Where(e => e.FullName.Equals(entryName)).FirstOrDefault();
-
+            var assemblyEntry = zipFile.Entries.Where(e => e.FullName.Equals(entryName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            assemblyName = string.Empty;
             found = false;
             bytes = null;
             if (assemblyEntry != null)
             {
+                assemblyName = assemblyEntry.FullName;
                 found = true;
                 using (var strm = assemblyEntry.Open())
                 {
@@ -131,14 +124,9 @@ namespace Elskom.Generic.Libs
                     {
                         strm.CopyTo(ms);
                         bytes = ms.ToArray();
-                        ms.Dispose();
                     }
-
-                    strm.Dispose();
                 }
             }
-
-            // return (bytes, found);
         }
     }
 }

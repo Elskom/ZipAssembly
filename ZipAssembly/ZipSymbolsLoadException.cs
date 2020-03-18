@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, Els_kom org.
+// Copyright (c) 2018-2020, Els_kom org.
 // https://github.com/Elskom/
 // All rights reserved.
 // license: see LICENSE for more details.
@@ -6,11 +6,13 @@
 namespace Elskom.Generic.Libs
 {
     using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// A exception that is raised when the symbols to an
     /// assembly cannot be loaded from a zip file.
     /// </summary>
+    [Serializable]
     public class ZipSymbolsLoadException : Exception
     {
         /// <summary>
@@ -47,6 +49,28 @@ namespace Elskom.Generic.Libs
         /// </param>
         public ZipSymbolsLoadException(string message, Exception innerException)
             : base(message, innerException)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ZipSymbolsLoadException"/> class with serialized data.
+        /// </summary>
+        /// <param name="info">
+        /// The <see cref="SerializationInfo"/> that holds the serialized
+        /// object data about the exception being thrown.
+        /// </param>
+        /// <param name="context">
+        /// The <see cref="StreamingContext"/> that contains contextual information
+        /// about the source or destination.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// info is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="SerializationException">
+        /// The class name is <see langword="null"/> or <see cref="Exception.HResult"/> is zero (0).
+        /// </exception>
+        protected ZipSymbolsLoadException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }

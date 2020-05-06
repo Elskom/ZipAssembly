@@ -16,18 +16,11 @@ namespace Elskom.Generic.Libs
     /// <summary>
     /// Load assemblies from a zip file.
     /// </summary>
+    [Serializable]
     public sealed class ZipAssembly : Assembly
     {
         // always set to Zip file full path + \\ + file path in zip.
         private string locationValue;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ZipAssembly"/> class.
-        /// Load assemblies from a zip file.
-        /// </summary>
-        public ZipAssembly()
-        {
-        }
 
         // hopefully this has the path to the assembly on System.Reflection.Assembly.Location output with the value from this override.
 
@@ -60,7 +53,7 @@ namespace Elskom.Generic.Libs
             {
                 throw new ArgumentException($"{nameof(assemblyName)} is not allowed to be empty.", nameof(assemblyName));
             }
-            else if (!assemblyName.EndsWith(".dll"))
+            else if (!assemblyName.EndsWith(".dll", StringComparison.Ordinal))
             {
                 // setting pdbFileName fails or makes unpredicted/unwanted things if this is not checked
                 throw new ArgumentException($"{nameof(assemblyName)} must end with '.dll' to be a valid assembly name.", nameof(assemblyName));
@@ -110,7 +103,7 @@ namespace Elskom.Generic.Libs
         [SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "A new disposable wrapped in a using block. The code never checks for null at all.", Scope = "member")]
         private static void GetBytesFromZipFile(string entryName, ZipArchive zipFile, out byte[] bytes, out bool found, out string assemblyName)
         {
-            var assemblyEntry = zipFile.Entries.Where(e => e.FullName.Equals(entryName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            var assemblyEntry = zipFile.Entries.FirstOrDefault(e => e.FullName.Equals(entryName, StringComparison.OrdinalIgnoreCase));
             assemblyName = string.Empty;
             found = false;
             bytes = null;
@@ -118,14 +111,10 @@ namespace Elskom.Generic.Libs
             {
                 assemblyName = assemblyEntry.FullName;
                 found = true;
-                using (var strm = assemblyEntry.Open())
-                {
-                    using (var ms = new MemoryStream())
-                    {
-                        strm.CopyTo(ms);
-                        bytes = ms.ToArray();
-                    }
-                }
+                using var strm = assemblyEntry.Open();
+                using var ms = new MemoryStream();
+                strm.CopyTo(ms);
+                bytes = ms.ToArray();
             }
         }
     }

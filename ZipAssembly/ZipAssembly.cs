@@ -66,6 +66,7 @@ namespace Elskom.Generic.Libs
             var found = false;
             var pdbfound = false;
             var zipAssemblyName = string.Empty;
+            var pdbAssemblyName = string.Empty;
             byte[] asmbytes = null;
             byte[] pdbbytes = null;
             using (var zipFile = ZipFile.OpenRead(zipFileName))
@@ -74,7 +75,7 @@ namespace Elskom.Generic.Libs
                 if (loadPDBFile || Debugger.IsAttached)
                 {
                     var pdbFileName = assemblyName.Replace("dll", "pdb");
-                    GetBytesFromZipFile(pdbFileName, zipFile, out pdbbytes, out pdbfound, out var pdbAssemblyName);
+                    GetBytesFromZipFile(pdbFileName, zipFile, out pdbbytes, out pdbfound, out pdbAssemblyName);
                 }
             }
 
@@ -95,12 +96,39 @@ namespace Elskom.Generic.Libs
             // PDB should be automatically downloaded to zip file always
             // and really *should* always be present.
             var loadPDB = loadPDBFile ? loadPDBFile : Debugger.IsAttached;
-            var zipassembly = (ZipAssembly)(Assembly)Load(asmbytes, loadPDB ? pdbbytes : null);
-            zipassembly.locationValue = $"{zipFileName}{Path.DirectorySeparatorChar}{zipAssemblyName}";
-            return zipassembly;
+            try
+            {
+                var zipassembly = (ZipAssembly)(Assembly)Load(asmbytes, loadPDB ? pdbbytes : null);
+                zipassembly.locationValue = $"{zipFileName}{Path.DirectorySeparatorChar}{zipAssemblyName}";
+                return zipassembly;
+            }
+            catch (BadImageFormatException)
+            {
+                // ignore the error and load the other files.
+                return null;
+            }
+            catch (FileLoadException)
+            {
+                var tmpDir = Path.GetTempPath();
+                using (var dllfs = File.Create($"{tmpDir}{zipAssemblyName}"))
+                {
+                    dllfs.Write(asmbytes, 0, asmbytes.Length);
+                }
+
+                if (loadPDBFile || Debugger.IsAttached)
+                {
+                    using (var pdbfs = File.Create($"{tmpDir}{pdbAssemblyName}"))
+                    {
+                        pdbfs.Write(pdbbytes, 0, pdbbytes.Length);
+                    }
+                }
+
+                var zipassembly = (ZipAssembly)(Assembly)LoadFrom($"{tmpDir}{zipAssemblyName}");
+                zipassembly.locationValue = $"{tmpDir}{zipAssemblyName}";
+                return zipassembly;
+            }
         }
 
-        [SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "A new disposable wrapped in a using block. The code never checks for null at all.", Scope = "member")]
         private static void GetBytesFromZipFile(string entryName, ZipArchive zipFile, out byte[] bytes, out bool found, out string assemblyName)
         {
             var assemblyEntry = zipFile.Entries.FirstOrDefault(e => e.FullName.Equals(entryName, StringComparison.OrdinalIgnoreCase));

@@ -7,11 +7,11 @@ namespace Elskom.Generic.Libs
 {
     using System;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Load assemblies from a zip file.
@@ -21,6 +21,9 @@ namespace Elskom.Generic.Libs
     {
         // always set to Zip file full path + \\ + file path in zip.
         private string locationValue;
+
+        private ZipAssembly(SerializationInfo serializationInfo, StreamingContext streamingContext)
+            => throw new NotImplementedException();
 
         // hopefully this has the path to the assembly on System.Reflection.Assembly.Location output with the value from this override.
 
